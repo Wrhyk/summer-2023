@@ -1,0 +1,54 @@
+
+<!DOCTYPE html>
+<html lang="en">
+    
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="./script.js"></script>
+    <link rel="stylesheet" href="./style.css">
+
+    <title>{{title}} - This project</title>
+</head>
+
+<body>
+    {% if title == 'Welcome' %}
+    <nav>
+        <div id="nav-bar-logo">
+            <img src="afish.png" alt="example logo or art" height="60px">
+        </div>
+    </nav>
+    {% else %}
+    <nav>
+        <div id="nav-bar-logo">
+            <img src="afish.png" alt="example logo or art" height="60px">
+        </div>
+        <div class="nav-bar">
+            <p>Home</p>
+        </div>
+        <div class="nav-bar">
+            <p>Fish</p>
+        </div>
+        <div class="nav-bar">
+            <p>About</p>
+        </div>
+        <div class="nav-bar">
+            <p>Help</p>
+        </div>
+
+    </nav>
+    <div id="main">
+        <div>
+
+        </div>
+        div
+    </div>
+    <div id="footer">
+
+    </div>
+    {% block script %}{% endblock %}
+</body>
+
+</html>
