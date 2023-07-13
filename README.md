@@ -1,6 +1,6 @@
 # summer-2023
 welcome to this project.
-This project was created during the summer of 2023.
+This project was created during the summer of 2023 and is a work in progress.
 
 Here is a website that runs on flask.
 
