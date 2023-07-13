@@ -11,7 +11,7 @@ nav{
     flex-wrap: wrap;
     background-color: #67b567;
     width: 100%;
-    height: 100%;
+    height: 60px;
     position: fixed;
 }
 
@@ -24,15 +24,20 @@ nav{
     to {
         background-color: #458a45;
         color: white;
-        font-size: large;
     }
 
 }
 
 .nav-bar{
-    margin-left: 1%;
-    margin-right: 1%;
-    padding: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+#nav-bar-logo{
+    height: 60px;
+    margin-left: 20px;
+    margin-right: 5px;
 }
 
 .nav-bar:hover{
