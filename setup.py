@@ -15,17 +15,13 @@ def create_connection(datafish):
 
 
 sql_create_users = """CREATE TABLE IF NOT EXISTS `users` (
-                    `user_id` INT NOT NULL PRIMARY KEY,
+                    `nickname` VARCHAR(45) NOT NULL PRIMARY KEY,
                     `first_name` VARCHAR(45) NOT NULL,
                     `last_name` VARCHAR(45) NOT NULL,
-                    `nickname` VARCHAR(45) NOT NULL,
                     `password` CHAR(60) NOT NULL,
+                    `fish_id` INT,
+                    FOREIGN KEY ("fish_id") REFERENCES `fish` (`fish_id`)
                     );"""
-
-sql_create_fish_types = """CREATE TABLE IF NOT EXISTS `fish_types` (
-                        `fish_name` VARCHAR(60) NOT NULL PRIMARY KEY 
-                        );"""
-
 
 
 sql_create_fish = """CREATE TABLE IF NOT EXISTS `fish` (
@@ -34,9 +30,8 @@ sql_create_fish = """CREATE TABLE IF NOT EXISTS `fish` (
                 `size` VARCHAR(20) NOT NULL,
                 `x_location` DECIMAL(30) NOT NULL,
                 `y_location` DECIMAL(30) NOT NULL,
-                `user_id` int NOT NULL,
-                FOREIGN KEY (`fish_type`) REFERENCES `fish_types` (`fish_name`),
-                FOREIGN KEY ("user_id) REFERENCES `users` (`user_id`)
+                `nickname` varchar(45) NOT NULL,
+                FOREIGN KEY ("nickname") REFERENCES `users` (`nickname`)
                 );"""
 
 
@@ -49,46 +44,47 @@ def create_table(conn, sql_create_table):
 
 
 
-def add_user(conn, user_id, first_name, last_name, nickname, password):
-    sql = ''' INSERT INTO users(user_id, first_name, last_name, nickname, password)
+def add_user(conn, nickname, first_name, last_name, password):
+    sql = ''' INSERT INTO users(nickname, first_name, last_name, password)
               VALUES(*,*,*,*,*,*) '''
     try:
         cur = conn.cursor()
-        cur.execute(sql, (user_id, first_name, last_name, nickname, password))
+        cur.execute(sql, (nickname, first_name, last_name, password))
         conn.commit()
     except Error as e:
         print(e)
 
 
-def add_fishtype(conn, fish_name):
-
-    sql = ''' INSERT INTO fish_types(fish_name)
-              VALUES(*) '''
-    try:
-        cur = conn.cursor()
-        cur.execute(sql, fish_name)
-        conn.commit()
-    except Error as e:
-        print(e)
-
-def add_fish(conn, fish_id, fish_type, size, x_location, y_location, user_id):
+def add_fish(conn, fish_id, fish_type, size, x_location, y_location, nickname):
     sql = ''' INSERT INTO fish(fish_id, fish_type, size, x_location, y_location, user_id)
             VALUES(*,*,*,*,*)'''
     try:
         cur = conn.cursor()
-        cur.execute(sql, (fish_id, fish_type, size, x_location, y_location, user_id))
+        cur.execute(sql, (fish_id, fish_type, size, x_location, y_location, nickname))
         conn.commit()
     except Error as e:
         print(e)
+
+
+def select_user(conn, nickname):
+        cur = conn.cursor()
+        sql = 'SELECT * FROM users u WHERE u.nickname = ('nickname')'
+        cur.execute(sql)
+        return cur
+
+
+
+
 
 def setup():
     conn = create_connection(database)
     if conn is not None:
         create_table(conn, sql_create_users)
-        create_table(conn, sql_create_fish_types)
         create_table(conn, sql_create_fish)
         conn.close()
 
 
 if __name__ == '__main__':
     setup()
+
+# Need to rework entire setup file to work with sql schema and others#

@@ -43,3 +43,5 @@ nav{
 .nav-bar:hover{
     animation: select-nav 1s linear both;
 }
+
+/* need to make different classes for different templates f.ex welcome and user page styles */
