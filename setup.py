@@ -1,90 +1,123 @@
-import sqlite3
+#imports needed for initalisation of the app
+import os
+import sqlite3 
 from sqlite3 import Error
+from flask import Flask, g
+from flask_bootstrap import Bootstrap
+from flask_wtf.csrf import CSRFProtect
+from werkzeug.security import check_password_hash 
+from flask_talisman import Talisman
 
-database = r"./datafish.db"
+SECRET_KEY = "secret"
 
-def create_connection(datafish):
-    conn = None
-    try:
-        conn = sqlite3.connect(datafish)
-        return conn
-    except Error as e:
-        print(e)
+# creating an app #
+app = Flask(__name__)
+Bootstrap(app)
 
-    return conn
-
-
-sql_create_users = """CREATE TABLE IF NOT EXISTS `users` (
-                    `nickname` VARCHAR(45) NOT NULL PRIMARY KEY,
-                    `first_name` VARCHAR(45) NOT NULL,
-                    `last_name` VARCHAR(45) NOT NULL,
-                    `password` CHAR(60) NOT NULL,
-                    `fish_id` INT,
-                    FOREIGN KEY ("fish_id") REFERENCES `fish` (`fish_id`)
-                    );"""
-
-
-sql_create_fish = """CREATE TABLE IF NOT EXISTS `fish` (
-                `fish_id` INT NOT NULL PRIMARY KEY,
-                `fish_type` VARCHAR(60) NOT NULL,
-                `size` VARCHAR(20) NOT NULL,
-                `x_location` DECIMAL(30) NOT NULL,
-                `y_location` DECIMAL(30) NOT NULL,
-                `nickname` varchar(45) NOT NULL,
-                FOREIGN KEY ("nickname") REFERENCES `users` (`nickname`)
-                );"""
-
-
-def create_table(conn, sql_create_table):
-    try:
-        c = conn.cursor()
-        c.execute(sql_create_table)
-    except Error as e:
-        print(e)
+# activating reCaptcha #
+app.config.from_object(Config)
+app.secret_key = app.config["SECRET_KEY"]
+csrf = CSRFProtect(app)
+csrf.init_app(app)
+app.config['RECAPTCHA_PUBLIC_KEY'] = '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'
+app.config['RECAPTCHA_PRIVATE_KEY'] = '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe'
 
 
 
-def add_user(conn, nickname, first_name, last_name, password):
+
+
+# initalize database for the first time #
+def init_db():
+    with app.app_context():
+        db = get_db()
+        with app.open_resource('schema.sql', mode='r') as f:
+            db.cursor().executescript(f.read())
+        db.commit()
+
+#get an instance of the database
+def get_db():
+    db = getattr(g, '_database', None)
+    if db is None:
+        db = g._database = sqlite3.connect(app.config['DATABASE'])
+    db.row_factory = sqlite3.Row
+    return db
+
+
+#add a user to the fish website
+def add_user(nickname, first_name, last_name, password):
+    conn = get_db()
+    cur = conn.cursor()
     sql = ''' INSERT INTO users(nickname, first_name, last_name, password)
-              VALUES(*,*,*,*,*,*) '''
+              VALUES( ?, ?, ?, ?, ?, ?) '''
     try:
-        cur = conn.cursor()
+        
         cur.execute(sql, (nickname, first_name, last_name, password))
         conn.commit()
     except Error as e:
         print(e)
-
-
-def add_fish(conn, fish_id, fish_type, size, x_location, y_location, nickname):
-    sql = ''' INSERT INTO fish(fish_id, fish_type, size, x_location, y_location, user_id)
-            VALUES(*,*,*,*,*)'''
-    try:
-        cur = conn.cursor()
-        cur.execute(sql, (fish_id, fish_type, size, x_location, y_location, nickname))
-        conn.commit()
-    except Error as e:
-        print(e)
-
-
-def select_user(conn, nickname):
-        cur = conn.cursor()
-        sql = 'SELECT * FROM users u WHERE u.nickname = ('nickname')'
-        cur.execute(sql)
-        return cur
-
-
-
-
-
-def setup():
-    conn = create_connection(database)
-    if conn is not None:
-        create_table(conn, sql_create_users)
-        create_table(conn, sql_create_fish)
+    else: 
+        print("User created with nickname {}.".format(nickname))
+        return cur.lastrowid
+    finally:
         conn.close()
 
 
-if __name__ == '__main__':
-    setup()
+def add_fish(fish_id, fish_type, size, x_location, y_location, nickname):
+    conn = get_db()
+    cur = conn.cursor()
+    sql = ('INSERT INTO fish(fish_id, fish_type, size, x_location, y_location, nickname) VALUES (?, ?, ?, ?, ?)')
+    try:
+        cur.execute(sql, (fish_id, fish_type, size, x_location, y_location, nickname))
+        conn.commit()
+    except sqlite3.Error as e:
+        print("Error: {}".format(e))
+        return -1
+    else:
+        print("Fish {} created with id {} and added to user {}.".format(fish_type, fish_id, nickname))
+        return cur.lastrowid
+    finally:
+        cur.close()
 
-# Need to rework entire setup file to work with sql schema and others#
+
+def select_user(nickname):
+        conn = get_db()
+        cur = conn.cursor()
+        try:
+            sql = ('SELECT nickname, first_name, last_name, fish_id FROM users u WHERE u.nickname = ?')
+            cur.execute(sql, nickname)
+            for row in cur:
+                (nickname, first_name, last_name, fish_id) = row
+                return{
+                    "nickname": nickname,
+                    "first_name": first_name,
+                    "last_name": last_name,
+                    "fish_id": fish_id
+                }
+            user = (nickname, first_name, last_name)
+            return user
+        except sqlite3.Error as e:
+            print("Error: {}".format(e))
+            return -1
+        finally:
+            cur.close()
+
+
+
+
+# automatically called when application is closed, and closes db connection #
+@app.teardown_appcontext
+def close_connection(exception):
+    db = getattr(g, '_database', None)
+    if db is not None:
+        db.close()
+
+
+if not os.path.exists(app.config['DATABASE']):
+    init_db()
+
+if not os.path.exists(app.config['UPLOAD_PATH']):
+    os.mkdir(app.config['UPLOAD_PATH'])
+
+# Need to rework entire setup file to work with sql schema and others #
+
+#from flask_login import LoginManager
