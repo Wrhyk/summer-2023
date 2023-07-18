@@ -61,8 +61,8 @@ def add_user(nickname, first_name, last_name, password):
         
         cur.execute(sql, (nickname, first_name, last_name, password))
         conn.commit()
-    except Error as e:
-        print(e)
+    except sqlite3.Error as e:
+        print("Error: {}".format(e))
     else: 
         print("User created with nickname {}.".format(nickname))
         return cur.lastrowid
