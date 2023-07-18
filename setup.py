@@ -13,6 +13,7 @@ SECRET_KEY = "secret"
 
 class Config(object):
     SK = secrets.token_hex()
+    DB = 'datafish.db'
 
 
     
@@ -116,9 +117,8 @@ def close_connection(exception):
         db.close()
 
 
-if not os.path.exists(app.config['DATABASE']):
+if not os.path.exists(app.config['DB']):
     init_db()
-
 
 
 # Need to rework entire setup file to work with sql schema and others #
