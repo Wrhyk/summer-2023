@@ -6,17 +6,23 @@ from flask import Flask, g
 from flask_bootstrap import Bootstrap
 from flask_wtf.csrf import CSRFProtect
 from werkzeug.security import check_password_hash 
+import secrets
 from flask_talisman import Talisman
 
 SECRET_KEY = "secret"
 
+class Config(object):
+    SK = secrets.token_hex()
+
+
+    
 # creating an app #
 app = Flask(__name__)
 Bootstrap(app)
 
 # activating reCaptcha #
 app.config.from_object(Config)
-app.secret_key = app.config["SECRET_KEY"]
+app.secret_key = app.config["SK"]
 csrf = CSRFProtect(app)
 csrf.init_app(app)
 app.config['RECAPTCHA_PUBLIC_KEY'] = '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'
@@ -62,12 +68,12 @@ def add_user(nickname, first_name, last_name, password):
         conn.close()
 
 
-def add_fish(fish_id, fish_type, size, x_location, y_location, nickname):
+def add_fish(fish_id, fish_type, weight, length, x_location, y_location, nickname):
     conn = get_db()
     cur = conn.cursor()
-    sql = ('INSERT INTO fish(fish_id, fish_type, size, x_location, y_location, nickname) VALUES (?, ?, ?, ?, ?)')
+    sql = ('INSERT INTO fish(fish_id, fish_type, f_weight, f_length, x_location, y_location, nickname) VALUES (?, ?, ?, ?, ?, ?, ?)')
     try:
-        cur.execute(sql, (fish_id, fish_type, size, x_location, y_location, nickname))
+        cur.execute(sql, (fish_id, fish_type, weight, length, x_location, y_location, nickname))
         conn.commit()
     except sqlite3.Error as e:
         print("Error: {}".format(e))
@@ -86,12 +92,11 @@ def select_user(nickname):
             sql = ('SELECT nickname, first_name, last_name, fish_id FROM users u WHERE u.nickname = ?')
             cur.execute(sql, nickname)
             for row in cur:
-                (nickname, first_name, last_name, fish_id) = row
+                (nickname, first_name, last_name) = row
                 return{
                     "nickname": nickname,
                     "first_name": first_name,
-                    "last_name": last_name,
-                    "fish_id": fish_id
+                    "last_name": last_name
                 }
             user = (nickname, first_name, last_name)
             return user
@@ -100,7 +105,6 @@ def select_user(nickname):
             return -1
         finally:
             cur.close()
-
 
 
 
