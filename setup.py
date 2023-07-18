@@ -119,8 +119,7 @@ def close_connection(exception):
 if not os.path.exists(app.config['DATABASE']):
     init_db()
 
-if not os.path.exists(app.config['UPLOAD_PATH']):
-    os.mkdir(app.config['UPLOAD_PATH'])
+
 
 # Need to rework entire setup file to work with sql schema and others #
 
