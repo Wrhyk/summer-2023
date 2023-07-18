@@ -1,4 +1,4 @@
-#imports needed for initalisation of the app
+# Imports needed for initalisation of the app #
 import os
 import sqlite3 
 from sqlite3 import Error
@@ -11,17 +11,18 @@ from flask_talisman import Talisman
 
 SECRET_KEY = "secret"
 
+# class for config #
 class Config(object):
     SK = secrets.token_hex()
     DB = 'datafish.db'
 
 
     
-# creating an app #
+# Creating an app #
 app = Flask(__name__)
 Bootstrap(app)
 
-# activating reCaptcha #
+# Activating reCaptcha #
 app.config.from_object(Config)
 app.secret_key = app.config["SK"]
 csrf = CSRFProtect(app)
@@ -33,7 +34,7 @@ app.config['RECAPTCHA_PRIVATE_KEY'] = '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe'
 
 
 
-# initalize database for the first time #
+# Initalize database for the first time #
 def init_db():
     with app.app_context():
         db = get_db()
@@ -41,7 +42,7 @@ def init_db():
             db.cursor().executescript(f.read())
         db.commit()
 
-#get an instance of the database
+# Get an instance of the database #
 def get_db():
     db = getattr(g, '_database', None)
     if db is None:
@@ -50,7 +51,7 @@ def get_db():
     return db
 
 
-#add a user to the fish website
+# Add a user to the fish website #
 def add_user(nickname, first_name, last_name, password):
     conn = get_db()
     cur = conn.cursor()
@@ -68,7 +69,7 @@ def add_user(nickname, first_name, last_name, password):
     finally:
         conn.close()
 
-
+# Query for adding fish to db #
 def add_fish(fish_id, fish_type, weight, length, x_location, y_location, nickname):
     conn = get_db()
     cur = conn.cursor()
@@ -86,6 +87,7 @@ def add_fish(fish_id, fish_type, weight, length, x_location, y_location, nicknam
         cur.close()
 
 
+# Query for selecting user from inputed nickname #
 def select_user(nickname):
         conn = get_db()
         cur = conn.cursor()
@@ -108,8 +110,24 @@ def select_user(nickname):
             cur.close()
 
 
+# Query for selecting all fish types in database
+def select_fish_types():
+    conn = get_db()
+    cur = conn.cursor()
+    try:
+        sql = ('SELECT * FROM fish_types')
+        cur.execute(sql)
+        array = []
+        for row in cur:
+            array.append(row)
+            return array
+    except sqlite3.Error as e:
+        print("Error: {}".format(e))
+        return -1
+    finally:
+        cur.close()
 
-# automatically called when application is closed, and closes db connection #
+# Automatically called when application is closed, and closes db connection #
 @app.teardown_appcontext
 def close_connection(exception):
     db = getattr(g, '_database', None)
