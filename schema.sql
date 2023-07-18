@@ -1,3 +1,4 @@
+/* Table for every registered user */
 DROP TABLE IF EXISTS [users]
 
 CREATE TABLE [users] (
@@ -8,6 +9,7 @@ CREATE TABLE [users] (
 );
 
 
+/* Table for data of every fish registered */
 DROP TABLE IF EXISTS[fish]
 
 CREATE TABLE [fish] (
@@ -22,6 +24,8 @@ CREATE TABLE [fish] (
     FOREIGN KEY (fish_type) REFERENCES fish_types (fish_type)
 );
 
+
+/* Table for fish connected to each user */
 DROP TABLE IF EXISTS [basket]
 
 CREATE TABLE [basket] (
@@ -31,6 +35,8 @@ CREATE TABLE [basket] (
     FOREIGN KEY (fish_id) REFERENCES fish (fish_id)
 );
 
+
+/* Table for some Norwegian fish types */
 DROP TABLE IF EXISTS [fish_types]
 
 CREATE TABLE [fish_types] (
